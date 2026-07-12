@@ -12,11 +12,11 @@ CredibleCrowd is a configurable virtual-population system for Velocity, with an 
 
 ## Installation
 
-1. Put `CredibleCrowd-Velocity-1.3.0.jar` in Velocity's `plugins/` directory.
+1. Put `CredibleCrowd-Velocity-1.3.1.jar` in Velocity's `plugins/` directory.
 2. Start Velocity once, then edit `plugins/crediblecrowd/config.yml` and `names.txt`.
 3. Ensure every `servers[].name` exactly matches a server name in `velocity.toml`.
 4. Optional: install [PlaceholderAPI 2.12.3+](https://github.com/PlaceholderAPI/PlaceholderAPI/releases) and [ProtocolLib 5.4.0+](https://github.com/dmulloy2/ProtocolLib/releases) on each Paper backend.
-5. Put `CredibleCrowd-Paper-1.3.0.jar` on every Paper backend whose placeholders, tablist and `/list` output should be synchronized.
+5. Put `CredibleCrowd-Paper-1.3.1.jar` on every Paper backend whose placeholders, tablist and `/list` output should be synchronized.
 6. Restart the proxy and backends. Use `/crediblecrowd reload` after later Velocity configuration edits.
 
 The Paper bridge receives its assigned names over `crediblecrowd:sync`. Standard Minecraft plugin messaging needs a real player connection as a carrier, so a backend with no connected real players receives its next snapshot when a real player connects.
@@ -82,14 +82,18 @@ For `/ping <player>`, connected real players use Velocity's actual ping and acti
 
 ## PlaceholderAPI and tablist
 
-- `%bungee_total%` returns the synchronized total across the Velocity network, including the virtual population.
-- `%bungee_server%` returns the real plus virtual population assigned to the current Paper backend.
-- `%cc_total%` returns the synchronized network total using CredibleCrowd's collision-free expansion.
-- `%cc_server%` returns the current backend's real plus virtual population.
+- `%velocity_total%` returns the synchronized total across the Velocity network.
+- `%velocity_server%` returns the current Paper backend's real plus virtual population.
+- `%velocity_server_name%` returns the current backend's registered Velocity name.
+- `%velocity_<server-name>%` returns the real plus virtual population for any registered Velocity backend, for example `%velocity_survival%`.
+- `%cc_total%`, `%cc_server%`, and `%cc_<server-name>%` provide the same values through CredibleCrowd's collision-free namespace.
 - `%cc_fake%` returns only the virtual population assigned to the current backend.
-- If PlaceholderAPI's eCloud `Bungee` expansion is already installed, CredibleCrowd temporarily replaces that expansion while the bridge is enabled and restores it on shutdown.
+- `%bungee_total%` and `%bungee_<server-name>%` remain compatibility aliases. CredibleCrowd does not require or run BungeeCord.
+- If PlaceholderAPI expansions using `velocity` or `bungee` are already installed, CredibleCrowd temporarily replaces them while its Paper bridge is enabled and restores them on shutdown.
 - With `fake-tablist: true`, ProtocolLib adds every locally assigned virtual name as an individual client-side tablist row. Old rows are removed on snapshot changes and the current rows are sent to newly joined players.
 - The Velocity status ping changes only its online/max count. CredibleCrowd does not supply a fake hover sample; Velocity's normal server-list behavior is preserved.
+
+After the first successful proxy message, Paper logs `Received Velocity population snapshot for '<server>' with <count> server totals.` If this line never appears, confirm that both CredibleCrowd JARs are version 1.3.1 and that at least one real player is connected to that backend, since standard plugin messaging uses a player connection as its transport.
 
 ## Building
 

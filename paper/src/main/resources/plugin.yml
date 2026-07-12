@@ -1,5 +1,5 @@
 name: CredibleCrowdPaper
-version: '1.3.0'
+version: '1.3.1'
 main: ro.nectariepopa.crediblecrowd.paper.CredibleCrowdPaper
 api-version: '26.1'
 description: Optional Paper bridge for CredibleCrowd
