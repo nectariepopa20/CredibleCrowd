@@ -1,5 +1,5 @@
 name: CredibleCrowdCitizens
-version: '1.4.2'
+version: '1.4.3'
 main: ro.nectariepopa.crediblecrowd.citizens.CredibleCrowdCitizens
 api-version: '26.1'
 description: Optional Citizens materialization module for CredibleCrowd

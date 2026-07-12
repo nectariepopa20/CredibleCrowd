@@ -94,7 +94,7 @@ final class MaterializationManager implements Listener {
             active.put(identity.id(), npc);
             worldCounts.merge(spawn.get().getWorld(), 1, Integer::sum);
             boolean lobbyAfk = settings.isLobbyAfk(identity.id());
-            behaviors.put(identity.id(), CitizensBehaviorRuntime.create(plugin, npc, lobbyAfk, settings));
+            behaviors.put(identity.id(), CitizensBehaviorRuntime.create(plugin, npc, lobbyAfk, settings, spawn.get()));
             if (customJoinItems != null) customJoinItems.apply(npc, identity.id(), lobbyAfk);
             allowance--;
         }

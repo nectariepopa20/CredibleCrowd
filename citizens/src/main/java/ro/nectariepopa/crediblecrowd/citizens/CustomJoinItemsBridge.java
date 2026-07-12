@@ -1,19 +1,23 @@
 package ro.nectariepopa.crediblecrowd.citizens;
 
 import java.lang.reflect.Method;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import net.citizensnpcs.api.npc.NPC;
+import net.citizensnpcs.api.trait.trait.Equipment;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
-import net.citizensnpcs.api.npc.NPC;
 
 /** Optional runtime-only bridge. No CustomJoinItems classes are linked at compile time. */
 final class CustomJoinItemsBridge {
     private final Plugin source;
     private final Method itemFactory;
     private final CitizensSettings settings;
+    private final Set<String> missingItemWarnings = new HashSet<>();
 
     private CustomJoinItemsBridge(Plugin source, Method itemFactory, CitizensSettings settings) {
         this.source = source; this.itemFactory = itemFactory; this.settings = settings;
@@ -42,7 +46,16 @@ final class CustomJoinItemsBridge {
         String key = lobbyAfk ? settings.afkSpawnItemKey() : select(settings.wanderingItemKeys(), virtualId);
         if (key == null || key.isBlank()) return;
         ItemStack item = item(key);
-        if (item == null) return;
+        if (item == null) {
+            if (missingItemWarnings.add(key)) {
+                source.getLogger().warning("CustomJoinItems has no item named '" + key
+                        + "'. Add that top-level key to plugins/CustomJoinItems/items.yml, then reload/restart CustomJoinItems.");
+            }
+            return;
+        }
+        // Citizens owns the visual equipment packet for player NPCs. Updating only
+        // the Bukkit inventory does not reliably update what nearby players see.
+        npc.getOrAddTrait(Equipment.class).set(Equipment.EquipmentSlot.HAND, item.clone());
         player.getInventory().setItemInMainHand(item);
         player.getInventory().setHeldItemSlot(0);
     }

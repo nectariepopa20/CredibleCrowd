@@ -25,26 +25,38 @@ import ro.nectariepopa.crediblecrowd.citizens.behavior.WanderBehavior;
 import ro.nectariepopa.crediblecrowd.citizens.behavior.WeightedBehaviorPool;
 
 final class CitizensBehaviorRuntime {
-    static BehaviorController create(CredibleCrowdCitizens plugin, NPC npc, boolean lobbyAfk, CitizensSettings settings) {
+    static BehaviorController create(CredibleCrowdCitizens plugin, NPC npc, boolean lobbyAfk, CitizensSettings settings,
+                                     Location home) {
         var config = plugin.getConfig();
         long minDuration = Math.max(5, config.getLong("behaviors.duration-min-seconds", 30)) * 1000;
         long maxDuration = Math.max(minDuration, config.getLong("behaviors.duration-max-seconds", 180) * 1000);
         WeightedBehaviorPool pool = new WeightedBehaviorPool();
-        if (lobbyAfk) {
-            pool.add(100, () -> new AfkBehavior(duration(minDuration, maxDuration)));
-        } else {
-            pool.add(config.getDouble("behaviors.afk-weight", 35), () -> new AfkBehavior(duration(minDuration, maxDuration)))
-                    .add(config.getDouble("behaviors.look-around-weight", 20), () -> new LookAroundBehavior(duration(minDuration, maxDuration), 2500))
-                    .add(config.getDouble("behaviors.wander-weight", 45), () -> new WanderBehavior(duration(minDuration, maxDuration),
-                            config.getDouble("behaviors.wander-radius", 20), config.getDouble("behaviors.wander-speed-min", .85),
-                            config.getDouble("behaviors.wander-speed-max", 1.15), 1000, 6000));
+        pool.add(config.getDouble("behaviors.afk-weight", 10), () -> new AfkBehavior(duration(minDuration, maxDuration)))
+                .add(config.getDouble("behaviors.look-around-weight", 15), () -> new LookAroundBehavior(duration(minDuration, maxDuration), 2500))
+                .add(config.getDouble("behaviors.wander-weight", 75), () -> wander(config, minDuration, maxDuration));
+        if (!lobbyAfk) {
             addPatrolRoutes(pool, config.getConfigurationSection("patrol-routes"), npc);
             addParkourCourses(pool, config.getConfigurationSection("parkour-courses"), npc);
         }
-        return new BehaviorController(new Actor(npc, settings), new Context(settings), pool,
+        // The old implementation made a lobby-AFK identity stationary forever.
+        // AFK identities now pause briefly at their compass spot, then participate
+        // in the same active pool. Every other NPC starts by walking immediately.
+        long initialAfkMin = Math.max(1, config.getLong("custom-join-items.lobby-afk.initial-min-seconds", 8)) * 1000;
+        long initialAfkMax = Math.max(initialAfkMin,
+                Math.max(1, config.getLong("custom-join-items.lobby-afk.initial-max-seconds", 20)) * 1000);
+        java.util.function.Supplier<? extends ro.nectariepopa.crediblecrowd.citizens.behavior.Behavior> first = lobbyAfk
+                ? () -> new AfkBehavior(duration(initialAfkMin, initialAfkMax))
+                : () -> wander(config, minDuration, maxDuration);
+        return new BehaviorController(new Actor(npc, settings), new Context(settings, from(home)), pool,
                 config.getLong("behaviors.tick-millis", 250),
                 config.getLong("behaviors.transition-pause-min-millis", 1000),
-                config.getLong("behaviors.transition-pause-max-millis", 5000));
+                config.getLong("behaviors.transition-pause-max-millis", 5000), first);
+    }
+
+    private static WanderBehavior wander(org.bukkit.configuration.file.FileConfiguration config, long minDuration, long maxDuration) {
+        return new WanderBehavior(duration(minDuration, maxDuration), config.getDouble("behaviors.wander-radius", 20),
+                config.getDouble("behaviors.wander-speed-min", .85), config.getDouble("behaviors.wander-speed-max", 1.15),
+                1000, 6000);
     }
 
     private static void addPatrolRoutes(WeightedBehaviorPool pool, ConfigurationSection routes, NPC npc) {
@@ -108,17 +120,30 @@ final class CitizensBehaviorRuntime {
 
     private static final class Context implements BehaviorContext {
         private final CitizensSettings settings;
-        Context(CitizensSettings settings) { this.settings = settings; }
+        private final Position home;
+        Context(CitizensSettings settings, Position home) { this.settings = settings; this.home = home; }
         @Override public long nowMillis() { return System.currentTimeMillis(); }
         @Override public RandomGenerator random() { return ThreadLocalRandom.current(); }
         @Override public Position randomWalkTarget(Position origin, double radius) {
-            World world = Bukkit.getWorld(origin.world()); if (world == null) return null;
-            double angle = random().nextDouble(Math.PI * 2), distance = random().nextDouble(2, Math.max(2.1, radius));
-            int x = (int) Math.floor(origin.x() + Math.cos(angle) * distance);
-            int z = (int) Math.floor(origin.z() + Math.sin(angle) * distance);
-            int y = world.getHighestBlockYAt(x, z) + 1;
-            Location candidate = new Location(world, x + .5, y, z + .5, origin.yaw(), origin.pitch());
-            return settings.allowsNpc(candidate) ? from(candidate) : null;
+            World world = Bukkit.getWorld(home.world()); if (world == null) return null;
+            // Always choose relative to the original spawn point. This prevents a
+            // wandering NPC from slowly drifting across the complete lobby.
+            for (int attempt = 0; attempt < 12; attempt++) {
+                double angle = random().nextDouble(Math.PI * 2);
+                double distance = random().nextDouble(2, Math.max(2.1, radius));
+                int x = (int) Math.floor(home.x() + Math.cos(angle) * distance);
+                int z = (int) Math.floor(home.z() + Math.sin(angle) * distance);
+                int y = world.getHighestBlockYAt(x, z) + 1;
+                Location candidate = new Location(world, x + .5, y, z + .5, origin.yaw(), origin.pitch());
+                if (settings.allowsNpc(candidate) && safeToStand(candidate)) return from(candidate);
+            }
+            return null;
+        }
+
+        private static boolean safeToStand(Location location) {
+            var feet = location.getBlock();
+            return feet.isPassable() && feet.getRelative(0, 1, 0).isPassable()
+                    && feet.getRelative(0, -1, 0).getType().isSolid();
         }
         @Override public List<Position> attentionTargets(Position origin) {
             return Bukkit.getOnlinePlayers().stream().filter(player -> !player.hasMetadata("NPC"))

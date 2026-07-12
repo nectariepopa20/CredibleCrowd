@@ -29,7 +29,7 @@ record CitizensSettings(double percentage, int globalLimit, int perWorldLimit,
         int anchorAttempts = positive(config.getInt("materialization.anchor-placement-attempts", 12));
         List<String> enabledWorlds = config.getStringList("lobby-scope.worlds").stream().map(s -> s.toLowerCase(Locale.ROOT)).toList();
         boolean cji = config.getBoolean("custom-join-items.enabled", true);
-        double afkPercentage = clamp(config.getDouble("custom-join-items.lobby-afk.percentage", .65), 0, 1);
+        double afkPercentage = clamp(config.getDouble("custom-join-items.lobby-afk.percentage", .40), 0, 1);
         String afkItem = config.getString("custom-join-items.lobby-afk.item-key", "lobby-compass");
         List<String> wanderingItems = List.copyOf(config.getStringList("custom-join-items.wandering-item-keys"));
         List<NpcRegion> regions = new ArrayList<>();

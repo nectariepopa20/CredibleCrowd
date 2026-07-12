@@ -37,9 +37,10 @@ behaviors:
   tick-millis: 250
   transition-pause-min-millis: 1000
   transition-pause-max-millis: 5000
-  afk-weight: 35
-  look-around-weight: 20
-  wander-weight: 45
+  # Lobby AFK NPCs are selected separately below. Keep the active group moving.
+  afk-weight: 10
+  look-around-weight: 15
+  wander-weight: 75
   duration-min-seconds: 30
   duration-max-seconds: 180
   wander-radius: 20
@@ -51,9 +52,12 @@ behaviors:
 custom-join-items:
   enabled: true
   lobby-afk:
-    # A deterministic fraction of virtual identities stays AFK and holds this item.
-    percentage: 0.65
+    # A deterministic fraction starts at the spawn anchor with this item. They
+    # pause briefly, then join the normal active behaviour pool.
+    percentage: 0.40
     item-key: "lobby-compass"
+    initial-min-seconds: 8
+    initial-max-seconds: 20
   # Optional CJI keys assigned to non-AFK NPCs deterministically. Leave empty to
   # give hand items only to lobby AFK NPCs.
   wandering-item-keys: []
