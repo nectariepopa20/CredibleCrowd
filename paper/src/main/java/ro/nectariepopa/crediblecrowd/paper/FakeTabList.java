@@ -5,7 +5,7 @@ import com.comphenix.protocol.*; import com.comphenix.protocol.events.PacketCont
 final class FakeTabList {
  private final ProtocolManager protocol=ProtocolLibrary.getProtocolManager(); private final int latency;
  FakeTabList(int latency){this.latency=Math.max(0,latency);}
- void replace(Collection<String> oldNames,Collection<String> newNames){for(Player viewer:Bukkit.getOnlinePlayers()){remove(viewer,oldNames);add(viewer,newNames);}}
+ void replace(Collection<String> oldNames,Collection<String> newNames){Set<String> oldLower=new HashSet<>(),newLower=new HashSet<>();oldNames.forEach(n->oldLower.add(n.toLowerCase(Locale.ROOT)));newNames.forEach(n->newLower.add(n.toLowerCase(Locale.ROOT)));List<String> removed=oldNames.stream().filter(n->!newLower.contains(n.toLowerCase(Locale.ROOT))).toList();List<String> added=newNames.stream().filter(n->!oldLower.contains(n.toLowerCase(Locale.ROOT))).toList();for(Player viewer:Bukkit.getOnlinePlayers()){remove(viewer,removed);add(viewer,added);}}
  void show(Player viewer,Collection<String> names){add(viewer,names);}
  void clear(Collection<String> names){for(Player viewer:Bukkit.getOnlinePlayers())remove(viewer,names);}
  private void add(Player viewer,Collection<String> names){if(names.isEmpty())return;PacketContainer packet=protocol.createPacket(PacketType.Play.Server.PLAYER_INFO);packet.getPlayerInfoActions().write(0,EnumSet.of(EnumWrappers.PlayerInfoAction.ADD_PLAYER,EnumWrappers.PlayerInfoAction.UPDATE_GAME_MODE,EnumWrappers.PlayerInfoAction.UPDATE_LISTED,EnumWrappers.PlayerInfoAction.UPDATE_LATENCY,EnumWrappers.PlayerInfoAction.UPDATE_DISPLAY_NAME));List<PlayerInfoData> data=names.stream().map(this::entry).toList();packet.getPlayerInfoDataLists().write(0,data);protocol.sendServerPacket(viewer,packet);}

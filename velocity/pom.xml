@@ -1,4 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"><modelVersion>4.0.0</modelVersion><parent><groupId>ro.nectariepopa</groupId><artifactId>crediblecrowd-parent</artifactId><version>1.1.0</version></parent><artifactId>crediblecrowd-velocity</artifactId>
+<project xmlns="http://maven.apache.org/POM/4.0.0"><modelVersion>4.0.0</modelVersion><parent><groupId>ro.nectariepopa</groupId><artifactId>crediblecrowd-parent</artifactId><version>1.2.0</version></parent><artifactId>crediblecrowd-velocity</artifactId>
 <dependencies>
  <dependency><groupId>ro.nectariepopa</groupId><artifactId>crediblecrowd-core</artifactId><version>${project.version}</version></dependency>
  <dependency><groupId>com.velocitypowered</groupId><artifactId>velocity-api</artifactId><version>3.5.1</version><scope>provided</scope></dependency>

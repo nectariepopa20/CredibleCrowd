@@ -12,11 +12,11 @@ CredibleCrowd is a configurable virtual-population system for Velocity, with an 
 
 ## Installation
 
-1. Put `CredibleCrowd-Velocity-1.1.0.jar` in Velocity's `plugins/` directory.
+1. Put `CredibleCrowd-Velocity-1.2.0.jar` in Velocity's `plugins/` directory.
 2. Start Velocity once, then edit `plugins/crediblecrowd/config.yml` and `names.txt`.
 3. Ensure every `servers[].name` exactly matches a server name in `velocity.toml`.
 4. Optional: install [PlaceholderAPI 2.12.3+](https://github.com/PlaceholderAPI/PlaceholderAPI/releases) and [ProtocolLib 5.4.0+](https://github.com/dmulloy2/ProtocolLib/releases) on each Paper backend.
-5. Put `CredibleCrowd-Paper-1.1.0.jar` on every Paper backend whose placeholders, tablist and `/list` output should be synchronized.
+5. Put `CredibleCrowd-Paper-1.2.0.jar` on every Paper backend whose placeholders, tablist and `/list` output should be synchronized.
 6. Restart the proxy and backends. Use `/crediblecrowd reload` after later Velocity configuration edits.
 
 The Paper bridge receives its assigned names over `crediblecrowd:sync`. Standard Minecraft plugin messaging needs a real player connection as a carrier, so a backend with no connected real players receives its next snapshot when a real player connects.
@@ -39,8 +39,12 @@ servers:
   - { name: skyblock, weight: 30 }
   - { name: lobby, weight: 15 }
 update-seconds: 60
+activity-tick-seconds: 10
 jitter: 0.16
 seed: 8743921
+turnover-per-minute: 0.06
+quiet-tick-chance: 0.28
+max-correction-ratio: 0.025
 display-mode: add-to-real
 maximum-players: 500
 reserve-fake-names: true
@@ -48,6 +52,14 @@ already-connected-message: "You are already connected to this proxy!"
 ```
 
 Ranges are smoothly interpolated at four-hour boundaries. A slow wave and bounded jitter produce variation while a seeded time bucket keeps repeated queries consistent. Server weights are proportional probabilities, so allocation varies naturally without losing the configured popularity order.
+
+The simulator keeps active identities and their backend assignments between updates. `update-seconds` controls the target population's random time bucket, while `activity-tick-seconds` controls how often small join/leave batches may occur. Background churn is calculated proportionally:
+
+```text
+expected replacements per tick = current virtual players × turnover-per-minute × activity-tick-seconds / 60
+```
+
+`quiet-tick-chance` allows ticks with no background churn. `max-correction-ratio` limits how much of the population can be added or removed in one tick while catching up to the time-of-day target. Retained players are never reshuffled merely because a tick occurred.
 
 `names.txt` accepts one Minecraft username per line. Invalid names are ignored, names currently used by real players are removed, and the virtual count is capped by the number of valid available names. With reservation enabled, login attempts using an active virtual name receive the configured already-connected message.
 
@@ -63,6 +75,9 @@ Ranges are smoothly interpolated at four-hour boundaries. A slow wave and bounde
 
 - `%bungee_total%` returns the synchronized total across the Velocity network, including the virtual population.
 - `%bungee_server%` returns the real plus virtual population assigned to the current Paper backend.
+- `%cc_total%` returns the synchronized network total using CredibleCrowd's collision-free expansion.
+- `%cc_server%` returns the current backend's real plus virtual population.
+- `%cc_fake%` returns only the virtual population assigned to the current backend.
 - If PlaceholderAPI's eCloud `Bungee` expansion is already installed, CredibleCrowd temporarily replaces that expansion while the bridge is enabled and restores it on shutdown.
 - With `fake-tablist: true`, ProtocolLib adds every locally assigned virtual name as an individual client-side tablist row. Old rows are removed on snapshot changes and the current rows are sent to newly joined players.
 - The Velocity status ping changes only its online/max count. CredibleCrowd does not supply a fake hover sample; Velocity's normal server-list behavior is preserved.

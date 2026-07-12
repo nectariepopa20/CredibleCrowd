@@ -30,6 +30,11 @@ public final class CrowdEngine {
     return new CrowdSnapshot(now, desired, selected, allocation);
   }
 
+  public int targetCount(Instant now) {
+    long bucket = now.getEpochSecond() / config.updateSeconds();
+    return desiredCount(now, new SplittableRandom(config.seed() ^ mix(bucket)));
+  }
+
   int desiredCount(Instant now, SplittableRandom random) {
     ZonedDateTime local = now.atZone(config.zone());
     double block = (local.getHour() % 4 + local.getMinute() / 60.0 + local.getSecond() / 3600.0) / 4.0;
@@ -46,4 +51,3 @@ public final class CrowdEngine {
   private static long mix(long z) { z = (z ^ (z >>> 33)) * 0xff51afd7ed558ccdl; z = (z ^ (z >>> 33)) * 0xc4ceb9fe1a85ec53l; return z ^ (z >>> 33); }
   private static <T> void shuffle(List<T> list, SplittableRandom r) { for(int i=list.size()-1;i>0;i--){int j=r.nextInt(i+1); Collections.swap(list,i,j);} }
 }
-

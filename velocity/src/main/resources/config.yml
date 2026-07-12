@@ -15,8 +15,16 @@ servers:
   - { name: lobby, weight: 15 }
 
 update-seconds: 60
+# Smaller activity ticks create staggered joins/leaves between target recalculations.
+activity-tick-seconds: 10
 jitter: 0.16
 seed: 8743921
+# Fraction of the active virtual population replaced per minute on average.
+turnover-per-minute: 0.06
+# Probability that an activity tick has no background joins/leaves.
+quiet-tick-chance: 0.28
+# Maximum fraction used to catch up toward the target during a single activity tick.
+max-correction-ratio: 0.025
 display-mode: add-to-real # add-to-real or replace
 maximum-players: 500
 reserve-fake-names: true
