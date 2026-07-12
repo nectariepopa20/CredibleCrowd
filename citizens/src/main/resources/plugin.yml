@@ -1,0 +1,8 @@
+name: CredibleCrowdCitizens
+version: '1.4.0'
+main: ro.nectariepopa.crediblecrowd.citizens.CredibleCrowdCitizens
+api-version: '26.1'
+description: Optional Citizens materialization module for CredibleCrowd
+author: nectariepopa20
+website: https://github.com/nectariepopa20/CredibleCrowd
+depend: [CredibleCrowdPaper, Citizens]

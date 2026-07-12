@@ -1,0 +1,58 @@
+enabled: true
+
+materialization:
+  percentage: 0.20
+  global-limit: 40
+  per-world-limit: 20
+  per-real-player-limit: 8
+  activation-distance: 64
+  despawn-distance: 96
+  reconcile-seconds: 10
+  spawn-batch-size: 2
+
+# NPCs are placed near real players by default. Explicit safe anchors can be
+# added as "world,x,y,z,yaw,pitch". Anchors are preferred when a real player is
+# within activation-distance of them.
+spawn-anchors: []
+
+behaviors:
+  # Runtime scheduler; individual controllers also enforce tick-millis.
+  scheduler-ticks: 5
+  tick-millis: 250
+  transition-pause-min-millis: 1000
+  transition-pause-max-millis: 5000
+  afk-weight: 35
+  look-around-weight: 20
+  wander-weight: 45
+  duration-min-seconds: 30
+  duration-max-seconds: 180
+  wander-radius: 20
+  wander-speed-min: 0.85
+  wander-speed-max: 1.15
+
+# Optional named routes. Waypoint format: world,x,y,z,yaw,pitch
+patrol-routes: {}
+# Example:
+#  lobby-loop:
+#    weight: 15
+#    activation-distance: 64
+#    speed: 1.0
+#    pause-seconds: 2
+#    waypoints:
+#      - "world,10.5,65,10.5,0,0"
+#      - "world,20.5,65,10.5,90,0"
+
+# Calibrated courses only. Checkpoint format:
+# world,x,y,z,yaw,pitch,horizontal-speed,vertical-speed,settle-millis
+parkour-courses: {}
+# Example:
+#  lobby-easy:
+#    weight: 8
+#    activation-distance: 12
+#    mistake-chance: 0.08
+#    maximum-failures: 4
+#    jump-timeout-millis: 2500
+#    retry-delay-millis: 3000
+#    checkpoints:
+#      - "world,30.5,65,30.5,0,0,0.42,0.42,350"
+#      - "world,33.5,66,30.5,0,0,0.44,0.43,350"

@@ -1,0 +1,19 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <parent><groupId>ro.nectariepopa</groupId><artifactId>crediblecrowd-parent</artifactId><version>1.4.0</version></parent>
+  <artifactId>crediblecrowd-citizens</artifactId>
+  <properties><maven.compiler.release>25</maven.compiler.release></properties>
+  <repositories>
+    <repository><id>citizens</id><url>https://repo.citizensnpcs.co/</url></repository>
+  </repositories>
+  <dependencies>
+    <dependency><groupId>io.papermc.paper</groupId><artifactId>paper-api</artifactId><version>26.1.2.build.74-stable</version><scope>provided</scope></dependency>
+    <dependency><groupId>net.citizensnpcs</groupId><artifactId>citizensapi</artifactId><version>2.0.42-SNAPSHOT</version><scope>provided</scope></dependency>
+    <dependency><groupId>ro.nectariepopa</groupId><artifactId>crediblecrowd-paper</artifactId><version>${project.version}</version><scope>provided</scope></dependency>
+    <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><scope>test</scope></dependency>
+  </dependencies>
+  <build><plugins>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><configuration><release>25</release></configuration></plugin>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-jar-plugin</artifactId><version>3.4.2</version><configuration><finalName>CredibleCrowd-Citizens-${project.version}</finalName></configuration></plugin>
+  </plugins></build>
+</project>

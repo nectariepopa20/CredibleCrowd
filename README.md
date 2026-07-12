@@ -12,11 +12,11 @@ CredibleCrowd is a configurable virtual-population system for Velocity, with an 
 
 ## Installation
 
-1. Put `CredibleCrowd-Velocity-1.3.1.jar` in Velocity's `plugins/` directory.
+1. Put `CredibleCrowd-Velocity-1.4.0.jar` in Velocity's `plugins/` directory.
 2. Start Velocity once, then edit `plugins/crediblecrowd/config.yml` and `names.txt`.
 3. Ensure every `servers[].name` exactly matches a server name in `velocity.toml`.
 4. Optional: install [PlaceholderAPI 2.12.3+](https://github.com/PlaceholderAPI/PlaceholderAPI/releases) and [ProtocolLib 5.4.0+](https://github.com/dmulloy2/ProtocolLib/releases) on each Paper backend.
-5. Put `CredibleCrowd-Paper-1.3.1.jar` on every Paper backend whose placeholders, tablist and `/list` output should be synchronized.
+5. Put `CredibleCrowd-Paper-1.4.0.jar` on every Paper backend whose placeholders, tablist and `/list` output should be synchronized.
 6. Restart the proxy and backends. Use `/crediblecrowd reload` after later Velocity configuration edits.
 
 The Paper bridge receives its assigned names over `crediblecrowd:sync`. Standard Minecraft plugin messaging needs a real player connection as a carrier, so a backend with no connected real players receives its next snapshot when a real player connects.
@@ -93,7 +93,25 @@ For `/ping <player>`, connected real players use Velocity's actual ping and acti
 - With `fake-tablist: true`, ProtocolLib adds every locally assigned virtual name as an individual client-side tablist row. Old rows are removed on snapshot changes and the current rows are sent to newly joined players.
 - The Velocity status ping changes only its online/max count. CredibleCrowd does not supply a fake hover sample; Velocity's normal server-list behavior is preserved.
 
-After the first successful proxy message, Paper logs `Received Velocity population snapshot for '<server>' with <count> server totals.` If this line never appears, confirm that both CredibleCrowd JARs are version 1.3.1 and that at least one real player is connected to that backend, since standard plugin messaging uses a player connection as its transport.
+After the first successful proxy message, Paper logs `Received Velocity population snapshot for '<server>' with <count> server totals.` If this line never appears, confirm that both CredibleCrowd JARs use the same version and that at least one real player is connected to that backend, since standard plugin messaging uses a player connection as its transport.
+
+## Optional Citizens NPC module
+
+Install Citizens, `CredibleCrowd-Paper-1.4.0.jar`, and `CredibleCrowd-Citizens-1.4.0.jar` on a Paper backend to materialize a bounded subset of its virtual population as player NPCs. The module requires both plugins and disables itself cleanly if either is unavailable.
+
+The generated Citizens-module configuration controls:
+
+- materialized percentage and global/per-world/per-viewer caps;
+- activation/despawn distances and gradual spawn batches;
+- optional safe spawn anchors;
+- independent AFK, look-around and wandering weights;
+- behavior duration, movement speed and tick throttling;
+- named waypoint patrol routes;
+- explicitly calibrated parkour courses, mistake probability, timeouts and retry limits.
+
+NPCs use the stable identities supplied by Velocity protocol v4. Joined/departed deltas are delivered through the Paper bridge, retained NPCs keep their identity, and all NPCs/tasks/registries are cleaned up when the module disables. Only NPCs near real players are materialized.
+
+Patrol waypoint syntax is `world,x,y,z,yaw,pitch`. Parkour checkpoint syntax is `world,x,y,z,yaw,pitch,horizontal-speed,vertical-speed,settle-millis`. Configure spawn anchors and course coordinates for the actual map; automatic nearby spawning is intended as a safe outdoor fallback and cannot infer protected, indoor, void or water-specific layouts.
 
 ## Building
 
