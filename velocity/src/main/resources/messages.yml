@@ -1,0 +1,29 @@
+# MiniMessage formatting: https://docs.advntr.dev/minimessage/format.html
+prefix: "<dark_gray>[<gold>CredibleCrowd</gold>]</dark_gray> "
+
+glist-server-line: "<green>[<server>] <gray>(<count>): <white><players>"
+glist-total: "<green>Total players online: <count>"
+glist-empty-players: "<gray>none"
+
+server-current: "<yellow>You are currently connected to <gold><server><yellow>."
+server-available-prefix: "<yellow>Available servers: "
+server-entry: "<green><server>"
+server-separator: "<gray>, "
+server-hover: "<yellow><count> players online"
+server-not-found: "<red>Server <server> does not exist."
+server-connecting: "<yellow>Connecting you to <gold><server><yellow>..."
+players-only: "<red>This command can only be used by a player."
+
+find-online: "<green><player> is online at <server>."
+find-offline: "<red>Player <player> is not online."
+find-usage: "<red>Usage: /find <player>"
+
+ping-self: "<green>Your ping is <ping>ms."
+ping-other: "<green><player>'s ping is <ping>ms."
+ping-offline: "<red>Player <player> is not online."
+ping-lookup-failed: "<red>Player <player> is not online."
+
+reload-success: "<green>CredibleCrowd configuration and messages reloaded."
+reload-failed: "<red>Reload failed: <error>"
+status: "<aqua>Virtual: <virtual>, displayed total: <total>"
+

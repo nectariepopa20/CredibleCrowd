@@ -29,3 +29,5 @@ display-mode: add-to-real # add-to-real or replace
 maximum-players: 500
 reserve-fake-names: true
 already-connected-message: "You are already connected to this proxy!"
+fake-ping-min: 35
+fake-ping-max: 95

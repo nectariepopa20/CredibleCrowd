@@ -12,11 +12,11 @@ CredibleCrowd is a configurable virtual-population system for Velocity, with an 
 
 ## Installation
 
-1. Put `CredibleCrowd-Velocity-1.2.0.jar` in Velocity's `plugins/` directory.
+1. Put `CredibleCrowd-Velocity-1.3.0.jar` in Velocity's `plugins/` directory.
 2. Start Velocity once, then edit `plugins/crediblecrowd/config.yml` and `names.txt`.
 3. Ensure every `servers[].name` exactly matches a server name in `velocity.toml`.
 4. Optional: install [PlaceholderAPI 2.12.3+](https://github.com/PlaceholderAPI/PlaceholderAPI/releases) and [ProtocolLib 5.4.0+](https://github.com/dmulloy2/ProtocolLib/releases) on each Paper backend.
-5. Put `CredibleCrowd-Paper-1.2.0.jar` on every Paper backend whose placeholders, tablist and `/list` output should be synchronized.
+5. Put `CredibleCrowd-Paper-1.3.0.jar` on every Paper backend whose placeholders, tablist and `/list` output should be synchronized.
 6. Restart the proxy and backends. Use `/crediblecrowd reload` after later Velocity configuration edits.
 
 The Paper bridge receives its assigned names over `crediblecrowd:sync`. Standard Minecraft plugin messaging needs a real player connection as a carrier, so a backend with no connected real players receives its next snapshot when a real player connects.
@@ -49,6 +49,8 @@ display-mode: add-to-real
 maximum-players: 500
 reserve-fake-names: true
 already-connected-message: "You are already connected to this proxy!"
+fake-ping-min: 35
+fake-ping-max: 95
 ```
 
 Ranges are smoothly interpolated at four-hour boundaries. A slow wave and bounded jitter produce variation while a seeded time bucket keeps repeated queries consistent. Server weights are proportional probabilities, so allocation varies naturally without losing the configured popularity order.
@@ -63,13 +65,20 @@ expected replacements per tick = current virtual players × turnover-per-minute 
 
 `names.txt` accepts one Minecraft username per line. Invalid names are ignored, names currently used by real players are removed, and the virtual count is capped by the number of valid available names. With reservation enabled, login attempts using an active virtual name receive the configured already-connected message.
 
-## Commands and permissions
+## Velocity commands and messages
 
-- `/glist` or `/ccplayers` — combined list and per-server allocation (`crediblecrowd.glist`)
+- `/server [server]` — replaces Velocity's command; server hover uses real plus virtual counts and entries remain clickable
+- `/glist` or `/ccplayers` — replaces Velocity's command with the Bungee-style per-server list and total
+- `/find <player>` — reports the backend of real and virtual players
+- `/ping [player]` — reports real Velocity latency or stable configured virtual latency
 - `/crediblecrowd` — current virtual/displayed counts (`crediblecrowd.admin`)
 - `/crediblecrowd reload` — reload configuration and names (`crediblecrowd.admin`)
 - Paper `/ccplayers` — synchronized local population (`crediblecrowd.players`, granted by default)
 - Paper `/list` — intercepted when `intercept-list-command: true` in the bridge config
+
+`/server`, `/glist`, `/find`, and `/ping` are available to every command source without a permission node. All output is generated from `plugins/crediblecrowd/messages.yml` and supports MiniMessage formatting. The messages file is created automatically and is reloaded by `/crediblecrowd reload`.
+
+For `/ping <player>`, connected real players use Velocity's actual ping and active virtual players use a deterministic value within `fake-ping-min` and `fake-ping-max`. If neither is online, CredibleCrowd queries the unauthenticated Minecraft Services profile endpoint asynchronously to recover the account's canonical casing, caches the result for six hours, and then sends the configurable offline message.
 
 ## PlaceholderAPI and tablist
 
