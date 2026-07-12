@@ -16,6 +16,7 @@ import net.citizensnpcs.api.npc.NPCRegistry;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
@@ -101,14 +102,15 @@ final class MaterializationManager implements Listener {
 
     private Optional<Location> chooseSpawn(List<? extends Player> viewers, Map<World, Integer> counts) {
         double activationSquared = settings.activationDistance() * settings.activationDistance();
-        for (Location anchor : settings.anchors()) {
-            if (!settings.allowsNpc(anchor)) continue;
-            if (counts.getOrDefault(anchor.getWorld(), 0) >= settings.perWorldLimit()) continue;
-            boolean close = viewers.stream().anyMatch(player -> player.getWorld().equals(anchor.getWorld())
-                    && player.getLocation().distanceSquared(anchor) <= activationSquared
-                    && nearbyMaterialized(player.getLocation(), activationSquared) < settings.perPlayerLimit());
-            if (close) return Optional.of(anchor.clone());
-        }
+        Optional<Location> anchor = settings.anchors().stream()
+                .filter(settings::allowsNpc)
+                .filter(point -> counts.getOrDefault(point.getWorld(), 0) < settings.perWorldLimit())
+                .filter(point -> viewers.stream().anyMatch(player -> player.getWorld().equals(point.getWorld())
+                        && player.getLocation().distanceSquared(point) <= activationSquared
+                        && nearbyMaterialized(player.getLocation(), activationSquared) < settings.perPlayerLimit()))
+                .min(Comparator.comparingLong(point -> nearbyMaterialized(point, 36)))
+                .map(this::spreadFromAnchor);
+        if (anchor.isPresent()) return anchor;
         if (!settings.allowFallbackNearPlayers()) return Optional.empty();
         return viewers.stream()
                 .filter(player -> counts.getOrDefault(player.getWorld(), 0) < settings.perWorldLimit())
@@ -122,6 +124,24 @@ final class MaterializationManager implements Listener {
                 .filter(java.util.Objects::nonNull).map(entity -> entity.getLocation())
                 .filter(candidate -> candidate.getWorld().equals(location.getWorld())
                         && candidate.distanceSquared(location) <= distanceSquared).count();
+    }
+
+    private Location spreadFromAnchor(Location anchor) {
+        if (settings.anchorSpreadRadius() <= 0) return anchor.clone();
+        for (int attempt = 0; attempt < settings.anchorPlacementAttempts(); attempt++) {
+            double angle = Math.random() * Math.PI * 2;
+            double distance = Math.sqrt(Math.random()) * settings.anchorSpreadRadius();
+            Location candidate = anchor.clone().add(Math.cos(angle) * distance, 0, Math.sin(angle) * distance);
+            if (settings.allowsNpc(candidate) && isSafeSpawn(candidate)) return candidate;
+        }
+        return anchor.clone();
+    }
+
+    private boolean isSafeSpawn(Location location) {
+        Block feet = location.getBlock();
+        Block head = feet.getRelative(0, 1, 0);
+        Block floor = feet.getRelative(0, -1, 0);
+        return feet.isPassable() && head.isPassable() && floor.getType().isSolid();
     }
 
     private Optional<Location> safeNearby(Location origin) {

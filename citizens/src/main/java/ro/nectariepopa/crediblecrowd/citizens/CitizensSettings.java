@@ -11,7 +11,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 record CitizensSettings(double percentage, int globalLimit, int perWorldLimit,
                         int perPlayerLimit, double activationDistance,
                         double despawnDistance, long reconcileTicks,
-                        long behaviorTicks, int spawnBatchSize, List<Location> anchors,
+                        long behaviorTicks, int spawnBatchSize, double anchorSpreadRadius, int anchorPlacementAttempts, List<Location> anchors,
                         List<String> enabledWorlds, boolean customJoinItemsEnabled,
                         double lobbyAfkPercentage, String afkSpawnItemKey, List<String> wanderingItemKeys,
                         List<NpcRegion> npcRegions, boolean allowFallbackNearPlayers) {
@@ -25,6 +25,8 @@ record CitizensSettings(double percentage, int globalLimit, int perWorldLimit,
         long ticks = Math.max(20, config.getLong("materialization.reconcile-seconds", 10) * 20);
         long behaviorTicks = Math.max(1, config.getLong("behaviors.scheduler-ticks", 5));
         int batch = positive(config.getInt("materialization.spawn-batch-size", 2));
+        double anchorSpread = Math.max(0, config.getDouble("materialization.anchor-spread-radius", 4));
+        int anchorAttempts = positive(config.getInt("materialization.anchor-placement-attempts", 12));
         List<String> enabledWorlds = config.getStringList("lobby-scope.worlds").stream().map(s -> s.toLowerCase(Locale.ROOT)).toList();
         boolean cji = config.getBoolean("custom-join-items.enabled", true);
         double afkPercentage = clamp(config.getDouble("custom-join-items.lobby-afk.percentage", .65), 0, 1);
@@ -50,7 +52,7 @@ record CitizensSettings(double percentage, int globalLimit, int perWorldLimit,
             } catch (NumberFormatException ignored) {}
         }
         return new CitizensSettings(percentage, global, world, player, activation,
-                despawn, ticks, behaviorTicks, batch, List.copyOf(anchors), List.copyOf(enabledWorlds), cji, afkPercentage, afkItem, wanderingItems, List.copyOf(regions), fallback);
+                despawn, ticks, behaviorTicks, batch, anchorSpread, anchorAttempts, List.copyOf(anchors), List.copyOf(enabledWorlds), cji, afkPercentage, afkItem, wanderingItems, List.copyOf(regions), fallback);
     }
 
     boolean appliesTo(World world) { return enabledWorlds.isEmpty() || enabledWorlds.contains(world.getName().toLowerCase(Locale.ROOT)); }

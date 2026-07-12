@@ -12,11 +12,11 @@ CredibleCrowd is a configurable virtual-population system for Velocity, with an 
 
 ## Installation
 
-1. Put `CredibleCrowd-Velocity-1.4.1.jar` in Velocity's `plugins/` directory.
+1. Put `CredibleCrowd-Velocity-1.4.2.jar` in Velocity's `plugins/` directory.
 2. Start Velocity once, then edit `plugins/crediblecrowd/config.yml` and `names.txt`.
 3. Ensure every `servers[].name` exactly matches a server name in `velocity.toml`.
 4. Optional: install [PlaceholderAPI 2.12.3+](https://github.com/PlaceholderAPI/PlaceholderAPI/releases) and [ProtocolLib 5.4.0+](https://github.com/dmulloy2/ProtocolLib/releases) on each Paper backend.
-5. Put `CredibleCrowd-Paper-1.4.1.jar` on every Paper backend whose placeholders, tablist and `/list` output should be synchronized.
+5. Put `CredibleCrowd-Paper-1.4.2.jar` on every Paper backend whose placeholders, tablist and `/list` output should be synchronized.
 6. Restart the proxy and backends. Use `/crediblecrowd reload` after later Velocity configuration edits.
 
 The Paper bridge receives its assigned names over `crediblecrowd:sync`. Standard Minecraft plugin messaging needs a real player connection as a carrier, so a backend with no connected real players receives its next snapshot when a real player connects.
@@ -97,7 +97,7 @@ After the first successful proxy message, Paper logs `Received Velocity populati
 
 ## Optional Citizens NPC module
 
-Install Citizens, `CredibleCrowd-Paper-1.4.1.jar`, and `CredibleCrowd-Citizens-1.4.1.jar` on a Paper backend to materialize a bounded subset of its virtual population as player NPCs. The module requires both plugins and disables itself cleanly if either is unavailable.
+Install Citizens, `CredibleCrowd-Paper-1.4.2.jar`, and `CredibleCrowd-Citizens-1.4.2.jar` on a Paper backend to materialize a bounded subset of its virtual population as player NPCs. The module requires both plugins and disables itself cleanly if either is unavailable.
 
 The generated Citizens-module configuration controls:
 
@@ -115,7 +115,7 @@ Patrol waypoint syntax is `world,x,y,z,yaw,pitch`. Parkour checkpoint syntax is 
 
 ### Lobby boundaries and CustomJoinItems
 
-The Citizens config includes `lobby-scope.worlds` and hard `lobby-scope.npc-regions`. NPCs are only materialized inside those cuboids, are despawned after leaving them, and by default do not use fallback spawning near players. This keeps lobby NPCs in the intended spawn area and prevents them appearing around players in other lobby areas or game modes.
+The Citizens config includes `lobby-scope.worlds` and hard `lobby-scope.npc-regions`. NPCs are only materialized inside those cuboids, are despawned after leaving them, and by default do not use fallback spawning near players. This keeps lobby NPCs in the intended spawn area and prevents them appearing around players in other lobby areas or game modes. `anchor-spread-radius` distributes new NPCs safely around an anchor without moving their materialization point away from spawn.
 
 With [CustomJoinItems](https://github.com/nectariepopa20/CustomJoinItems) `2.1.1+` installed, `CredibleCrowd-Citizens` detects it optionally and reads detached copies of configured `items.yml` items. Set `custom-join-items.lobby-afk.item-key` to a top-level CJI item key such as `lobby-compass`; a deterministic percentage of NPCs will stay AFK and hold it. This integration never gives, removes or changes items for real players.
 

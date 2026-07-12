@@ -19,6 +19,9 @@ materialization:
   despawn-distance: 96
   reconcile-seconds: 10
   spawn-batch-size: 2
+  # Spawn only around anchors, with a safe spread to avoid NPC stacking.
+  anchor-spread-radius: 4
+  anchor-placement-attempts: 12
   # Keep false in a lobby: NPCs stay in configured anchors/regions rather
   # than appearing near a real player who walks elsewhere.
   allow-fallback-near-players: false
