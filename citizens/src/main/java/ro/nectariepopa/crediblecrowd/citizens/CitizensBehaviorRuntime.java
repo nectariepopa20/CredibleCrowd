@@ -25,19 +25,23 @@ import ro.nectariepopa.crediblecrowd.citizens.behavior.WanderBehavior;
 import ro.nectariepopa.crediblecrowd.citizens.behavior.WeightedBehaviorPool;
 
 final class CitizensBehaviorRuntime {
-    static BehaviorController create(CredibleCrowdCitizens plugin, NPC npc) {
+    static BehaviorController create(CredibleCrowdCitizens plugin, NPC npc, boolean lobbyAfk, CitizensSettings settings) {
         var config = plugin.getConfig();
         long minDuration = Math.max(5, config.getLong("behaviors.duration-min-seconds", 30)) * 1000;
         long maxDuration = Math.max(minDuration, config.getLong("behaviors.duration-max-seconds", 180) * 1000);
-        WeightedBehaviorPool pool = new WeightedBehaviorPool()
-                .add(config.getDouble("behaviors.afk-weight", 35), () -> new AfkBehavior(duration(minDuration, maxDuration)))
-                .add(config.getDouble("behaviors.look-around-weight", 20), () -> new LookAroundBehavior(duration(minDuration, maxDuration), 2500))
-                .add(config.getDouble("behaviors.wander-weight", 45), () -> new WanderBehavior(duration(minDuration, maxDuration),
-                        config.getDouble("behaviors.wander-radius", 20), config.getDouble("behaviors.wander-speed-min", .85),
-                        config.getDouble("behaviors.wander-speed-max", 1.15), 1000, 6000));
-        addPatrolRoutes(pool, config.getConfigurationSection("patrol-routes"), npc);
-        addParkourCourses(pool, config.getConfigurationSection("parkour-courses"), npc);
-        return new BehaviorController(new Actor(npc), new Context(), pool,
+        WeightedBehaviorPool pool = new WeightedBehaviorPool();
+        if (lobbyAfk) {
+            pool.add(100, () -> new AfkBehavior(duration(minDuration, maxDuration)));
+        } else {
+            pool.add(config.getDouble("behaviors.afk-weight", 35), () -> new AfkBehavior(duration(minDuration, maxDuration)))
+                    .add(config.getDouble("behaviors.look-around-weight", 20), () -> new LookAroundBehavior(duration(minDuration, maxDuration), 2500))
+                    .add(config.getDouble("behaviors.wander-weight", 45), () -> new WanderBehavior(duration(minDuration, maxDuration),
+                            config.getDouble("behaviors.wander-radius", 20), config.getDouble("behaviors.wander-speed-min", .85),
+                            config.getDouble("behaviors.wander-speed-max", 1.15), 1000, 6000));
+            addPatrolRoutes(pool, config.getConfigurationSection("patrol-routes"), npc);
+            addParkourCourses(pool, config.getConfigurationSection("parkour-courses"), npc);
+        }
+        return new BehaviorController(new Actor(npc, settings), new Context(settings), pool,
                 config.getLong("behaviors.tick-millis", 250),
                 config.getLong("behaviors.transition-pause-min-millis", 1000),
                 config.getLong("behaviors.transition-pause-max-millis", 5000));
@@ -83,12 +87,12 @@ final class CitizensBehaviorRuntime {
         return min == max ? min : ThreadLocalRandom.current().nextLong(min, max + 1);
     }
 
-    private record Actor(NPC npc) implements BehaviorActor {
+    private record Actor(NPC npc, CitizensSettings settings) implements BehaviorActor {
         @Override public Position position() { return from(npc.getEntity().getLocation()); }
         @Override public boolean isSpawned() { return npc.isSpawned() && npc.getEntity() != null; }
         @Override public boolean isNavigating() { return npc.getNavigator().isNavigating(); }
         @Override public void navigateTo(Position destination, double speed) {
-            Location target = to(destination); if (target == null) return;
+            Location target = to(destination); if (target == null || !settings.allowsNpc(target)) return;
             npc.getNavigator().setTarget(target);
             npc.getNavigator().getLocalParameters().speedModifier((float) speed);
         }
@@ -103,6 +107,8 @@ final class CitizensBehaviorRuntime {
     }
 
     private static final class Context implements BehaviorContext {
+        private final CitizensSettings settings;
+        Context(CitizensSettings settings) { this.settings = settings; }
         @Override public long nowMillis() { return System.currentTimeMillis(); }
         @Override public RandomGenerator random() { return ThreadLocalRandom.current(); }
         @Override public Position randomWalkTarget(Position origin, double radius) {
@@ -111,7 +117,8 @@ final class CitizensBehaviorRuntime {
             int x = (int) Math.floor(origin.x() + Math.cos(angle) * distance);
             int z = (int) Math.floor(origin.z() + Math.sin(angle) * distance);
             int y = world.getHighestBlockYAt(x, z) + 1;
-            return new Position(world.getName(), x + .5, y, z + .5, origin.yaw(), origin.pitch());
+            Location candidate = new Location(world, x + .5, y, z + .5, origin.yaw(), origin.pitch());
+            return settings.allowsNpc(candidate) ? from(candidate) : null;
         }
         @Override public List<Position> attentionTargets(Position origin) {
             return Bukkit.getOnlinePlayers().stream().filter(player -> !player.hasMetadata("NPC"))

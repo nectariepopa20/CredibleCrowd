@@ -31,6 +31,7 @@ final class MaterializationManager implements Listener {
     private final CredibleCrowdCitizens plugin;
     private final CredibleCrowdPaper bridge;
     private final CitizensSettings settings;
+    private CustomJoinItemsBridge customJoinItems;
     private final Map<UUID, NPC> active = new LinkedHashMap<>();
     private final Map<UUID, BehaviorController> behaviors = new HashMap<>();
     private NPCRegistry registry;
@@ -46,6 +47,7 @@ final class MaterializationManager implements Listener {
 
     void start() {
         registry = CitizensAPI.createAnonymousNPCRegistry(new MemoryNPCDataStore());
+        customJoinItems = CustomJoinItemsBridge.detect(plugin, settings);
         Bukkit.getPluginManager().registerEvents(this, plugin);
         task = Bukkit.getScheduler().runTaskTimer(plugin, this::reconcile, 1L, settings.reconcileTicks());
         behaviorTask = Bukkit.getScheduler().runTaskTimer(plugin, this::tickBehaviors, 1L, settings.behaviorTicks());
@@ -56,7 +58,7 @@ final class MaterializationManager implements Listener {
     private void tickBehaviors() { behaviors.values().forEach(BehaviorController::tick); }
 
     private void reconcile() {
-        List<? extends Player> viewers = Bukkit.getOnlinePlayers().stream().filter(p -> !p.hasMetadata("NPC")).toList();
+        List<? extends Player> viewers = Bukkit.getOnlinePlayers().stream().filter(p -> !p.hasMetadata("NPC") && settings.allowsNpc(p.getLocation())).toList();
         List<VirtualPlayer> virtual = bridge.getVirtualPlayerIdentities();
         Set<UUID> virtualIds = virtual.stream().map(VirtualPlayer::id).collect(java.util.stream.Collectors.toSet());
         active.entrySet().removeIf(entry -> {
@@ -90,7 +92,9 @@ final class MaterializationManager implements Listener {
             }
             active.put(identity.id(), npc);
             worldCounts.merge(spawn.get().getWorld(), 1, Integer::sum);
-            behaviors.put(identity.id(), CitizensBehaviorRuntime.create(plugin, npc));
+            boolean lobbyAfk = settings.isLobbyAfk(identity.id());
+            behaviors.put(identity.id(), CitizensBehaviorRuntime.create(plugin, npc, lobbyAfk, settings));
+            if (customJoinItems != null) customJoinItems.apply(npc, identity.id(), lobbyAfk);
             allowance--;
         }
     }
@@ -98,17 +102,19 @@ final class MaterializationManager implements Listener {
     private Optional<Location> chooseSpawn(List<? extends Player> viewers, Map<World, Integer> counts) {
         double activationSquared = settings.activationDistance() * settings.activationDistance();
         for (Location anchor : settings.anchors()) {
+            if (!settings.allowsNpc(anchor)) continue;
             if (counts.getOrDefault(anchor.getWorld(), 0) >= settings.perWorldLimit()) continue;
             boolean close = viewers.stream().anyMatch(player -> player.getWorld().equals(anchor.getWorld())
                     && player.getLocation().distanceSquared(anchor) <= activationSquared
                     && nearbyMaterialized(player.getLocation(), activationSquared) < settings.perPlayerLimit());
             if (close) return Optional.of(anchor.clone());
         }
+        if (!settings.allowFallbackNearPlayers()) return Optional.empty();
         return viewers.stream()
                 .filter(player -> counts.getOrDefault(player.getWorld(), 0) < settings.perWorldLimit())
                 .filter(player -> nearbyMaterialized(player.getLocation(), activationSquared) < settings.perPlayerLimit())
                 .min(Comparator.comparingInt(player -> counts.getOrDefault(player.getWorld(), 0)))
-                .map(player -> safeNearby(player.getLocation()));
+                .flatMap(player -> safeNearby(player.getLocation()));
     }
 
     private long nearbyMaterialized(Location location, double distanceSquared) {
@@ -118,17 +124,18 @@ final class MaterializationManager implements Listener {
                         && candidate.distanceSquared(location) <= distanceSquared).count();
     }
 
-    private Location safeNearby(Location origin) {
+    private Optional<Location> safeNearby(Location origin) {
         double angle = Math.random() * Math.PI * 2;
         double distance = 6 + Math.random() * Math.max(2, settings.activationDistance() / 3);
         int x = origin.getBlockX() + (int) Math.round(Math.cos(angle) * distance);
         int z = origin.getBlockZ() + (int) Math.round(Math.sin(angle) * distance);
         int y = origin.getWorld().getHighestBlockYAt(x, z) + 1;
-        return new Location(origin.getWorld(), x + .5, y, z + .5, (float) (Math.random() * 360), 0);
+        Location candidate = new Location(origin.getWorld(), x + .5, y, z + .5, (float) (Math.random() * 360), 0);
+        return settings.allowsNpc(candidate) ? Optional.of(candidate) : Optional.empty();
     }
 
     private boolean shouldDespawn(NPC npc, List<? extends Player> viewers) {
-        if (!npc.isSpawned() || npc.getEntity() == null) return true;
+        if (!npc.isSpawned() || npc.getEntity() == null || !settings.allowsNpc(npc.getEntity().getLocation())) return true;
         Location location = npc.getEntity().getLocation();
         double distanceSquared = settings.despawnDistance() * settings.despawnDistance();
         return viewers.stream().noneMatch(player -> player.getWorld().equals(location.getWorld())

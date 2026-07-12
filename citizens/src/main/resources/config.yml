@@ -1,5 +1,15 @@
 enabled: true
 
+# CredibleCrowd-Citizens only acts in these lobby worlds. Keep this list limited
+# so survival, SkyBlock and other game modes are never affected.
+lobby-scope:
+  worlds:
+    - "world"
+  # Format: world,min-x,min-y,min-z,max-x,max-y,max-z
+  # NPCs never spawn or remain outside these hard boundaries.
+  npc-regions:
+    - "world,-122,20,254,-66,50,310"
+
 materialization:
   percentage: 0.20
   global-limit: 40
@@ -9,6 +19,9 @@ materialization:
   despawn-distance: 96
   reconcile-seconds: 10
   spawn-batch-size: 2
+  # Keep false in a lobby: NPCs stay in configured anchors/regions rather
+  # than appearing near a real player who walks elsewhere.
+  allow-fallback-near-players: false
 
 # NPCs are placed near real players by default. Explicit safe anchors can be
 # added as "world,x,y,z,yaw,pitch". Anchors are preferred when a real player is
@@ -29,6 +42,18 @@ behaviors:
   wander-radius: 20
   wander-speed-min: 0.85
   wander-speed-max: 1.15
+
+# Optional CustomJoinItems integration. Item keys are top-level entries in
+# CustomJoinItems/items.yml, not the display name of the item.
+custom-join-items:
+  enabled: true
+  lobby-afk:
+    # A deterministic fraction of virtual identities stays AFK and holds this item.
+    percentage: 0.65
+    item-key: "lobby-compass"
+  # Optional CJI keys assigned to non-AFK NPCs deterministically. Leave empty to
+  # give hand items only to lobby AFK NPCs.
+  wandering-item-keys: []
 
 # Optional named routes. Waypoint format: world,x,y,z,yaw,pitch
 patrol-routes: {}
