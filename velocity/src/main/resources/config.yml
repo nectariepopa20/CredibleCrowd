@@ -1,0 +1,25 @@
+# Timezone used for the six four-hour periods.
+timezone: Europe/Bucharest
+periods:
+  00-04: { min: 12, max: 28 }
+  04-08: { min: 7, max: 18 }
+  08-12: { min: 22, max: 52 }
+  12-16: { min: 45, max: 90 }
+  16-20: { min: 75, max: 140 }
+  20-00: { min: 50, max: 105 }
+
+# Order expresses popularity; weight controls the proportional allocation.
+servers:
+  - { name: survival, weight: 55 }
+  - { name: skyblock, weight: 30 }
+  - { name: lobby, weight: 15 }
+
+update-seconds: 60
+jitter: 0.16
+seed: 8743921
+ping-sample-size: 12
+display-mode: add-to-real # add-to-real or replace
+maximum-players: 500
+reserve-fake-names: true
+already-connected-message: "You are already connected to this proxy!"
+

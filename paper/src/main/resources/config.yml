@@ -1,0 +1,4 @@
+# Intercept Bukkit's /list command and show the synchronized virtual population.
+intercept-list-command: true
+list-format: "There are {count} of a max of {max} players online: {players}"
+

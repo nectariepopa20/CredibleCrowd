@@ -1,0 +1,15 @@
+name: CredibleCrowdPaper
+version: '${project.version}'
+main: ro.nectariepopa.crediblecrowd.paper.CredibleCrowdPaper
+api-version: '26.1'
+description: Optional Paper bridge for CredibleCrowd
+author: nectariepopa20
+website: https://github.com/nectariepopa20/CredibleCrowd
+commands:
+  ccplayers:
+    description: Shows the synchronized real and virtual population
+    permission: crediblecrowd.players
+permissions:
+  crediblecrowd.players:
+    default: true
+
