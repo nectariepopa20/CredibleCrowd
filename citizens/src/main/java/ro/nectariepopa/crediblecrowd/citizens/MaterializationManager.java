@@ -59,6 +59,7 @@ final class MaterializationManager implements Listener {
     private void tickBehaviors() { behaviors.values().forEach(BehaviorController::tick); }
 
     private void reconcile() {
+        reconnectCustomJoinItems();
         List<? extends Player> viewers = Bukkit.getOnlinePlayers().stream().filter(p -> !p.hasMetadata("NPC") && settings.allowsNpc(p.getLocation())).toList();
         List<VirtualPlayer> virtual = bridge.getVirtualPlayerIdentities();
         Set<UUID> virtualIds = virtual.stream().map(VirtualPlayer::id).collect(java.util.stream.Collectors.toSet());
@@ -98,6 +99,16 @@ final class MaterializationManager implements Listener {
             if (customJoinItems != null) customJoinItems.apply(npc, identity.id(), lobbyAfk);
             allowance--;
         }
+    }
+
+    /** CJI is optional and can finish enabling after this plugin on a live reload. */
+    private void reconnectCustomJoinItems() {
+        if (customJoinItems != null || !settings.customJoinItemsEnabled()) return;
+        CustomJoinItemsBridge detected = CustomJoinItemsBridge.detect(plugin, settings);
+        if (detected == null) return;
+        customJoinItems = detected;
+        active.forEach((id, npc) -> customJoinItems.apply(npc, id, settings.isLobbyAfk(id)));
+        plugin.getLogger().info("CustomJoinItems bridge connected; equipped existing CredibleCrowd NPCs.");
     }
 
     private Optional<Location> chooseSpawn(List<? extends Player> viewers, Map<World, Integer> counts) {

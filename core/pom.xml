@@ -1,2 +1,2 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"><modelVersion>4.0.0</modelVersion><parent><groupId>ro.nectariepopa</groupId><artifactId>crediblecrowd-parent</artifactId><version>1.4.3</version></parent><artifactId>crediblecrowd-core</artifactId>
+<project xmlns="http://maven.apache.org/POM/4.0.0"><modelVersion>4.0.0</modelVersion><parent><groupId>ro.nectariepopa</groupId><artifactId>crediblecrowd-parent</artifactId><version>1.4.4</version></parent><artifactId>crediblecrowd-core</artifactId>
 <dependencies><dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><scope>test</scope></dependency></dependencies></project>

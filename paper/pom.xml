@@ -1,4 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"><modelVersion>4.0.0</modelVersion><parent><groupId>ro.nectariepopa</groupId><artifactId>crediblecrowd-parent</artifactId><version>1.4.3</version></parent><artifactId>crediblecrowd-paper</artifactId><properties><maven.compiler.release>25</maven.compiler.release></properties>
+<project xmlns="http://maven.apache.org/POM/4.0.0"><modelVersion>4.0.0</modelVersion><parent><groupId>ro.nectariepopa</groupId><artifactId>crediblecrowd-parent</artifactId><version>1.4.4</version></parent><artifactId>crediblecrowd-paper</artifactId><properties><maven.compiler.release>25</maven.compiler.release></properties>
 <repositories><repository><id>placeholderapi</id><url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url></repository><repository><id>dmulloy2</id><url>https://repo.dmulloy2.net/repository/public/</url></repository></repositories>
 <dependencies>
  <dependency><groupId>io.papermc.paper</groupId><artifactId>paper-api</artifactId><version>26.1.2.build.74-stable</version><scope>provided</scope></dependency>

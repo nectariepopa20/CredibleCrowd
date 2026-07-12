@@ -27,7 +27,6 @@ final class CustomJoinItemsBridge {
         if (!settings.customJoinItemsEnabled()) return null;
         Plugin cji = Bukkit.getPluginManager().getPlugin("CustomJoinItems");
         if (cji == null || !cji.isEnabled()) {
-            plugin.getLogger().info("CustomJoinItems was not detected; NPC hand items are disabled.");
             return null;
         }
         try {
