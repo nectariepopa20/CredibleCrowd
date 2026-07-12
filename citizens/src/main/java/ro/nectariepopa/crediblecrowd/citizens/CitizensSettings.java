@@ -14,7 +14,7 @@ record CitizensSettings(double percentage, int globalLimit, int perWorldLimit,
                         long behaviorTicks, int spawnBatchSize, double anchorSpreadRadius, int anchorPlacementAttempts, List<Location> anchors,
                         List<String> enabledWorlds, boolean customJoinItemsEnabled,
                         double lobbyAfkPercentage, String afkSpawnItemKey, List<String> wanderingItemKeys,
-                        List<NpcRegion> npcRegions, boolean allowFallbackNearPlayers) {
+                        List<NpcRegion> npcRegions, boolean allowFallbackNearPlayers, boolean persistentPopulation) {
     static CitizensSettings load(FileConfiguration config) {
         double percentage = clamp(config.getDouble("materialization.percentage", .2), 0, 1);
         int global = positive(config.getInt("materialization.global-limit", 40));
@@ -38,6 +38,7 @@ record CitizensSettings(double percentage, int globalLimit, int perWorldLimit,
             try { regions.add(new NpcRegion(p[0].trim(), Double.parseDouble(p[1].trim()), Double.parseDouble(p[2].trim()), Double.parseDouble(p[3].trim()), Double.parseDouble(p[4].trim()), Double.parseDouble(p[5].trim()), Double.parseDouble(p[6].trim()))); } catch (NumberFormatException ignored) {}
         }
         boolean fallback = config.getBoolean("materialization.allow-fallback-near-players", false);
+        boolean persistent = config.getBoolean("materialization.persistent-population", true);
         List<Location> anchors = new ArrayList<>();
         for (String raw : config.getStringList("spawn-anchors")) {
             String[] parts = raw.split(",");
@@ -52,7 +53,7 @@ record CitizensSettings(double percentage, int globalLimit, int perWorldLimit,
             } catch (NumberFormatException ignored) {}
         }
         return new CitizensSettings(percentage, global, world, player, activation,
-                despawn, ticks, behaviorTicks, batch, anchorSpread, anchorAttempts, List.copyOf(anchors), List.copyOf(enabledWorlds), cji, afkPercentage, afkItem, wanderingItems, List.copyOf(regions), fallback);
+                despawn, ticks, behaviorTicks, batch, anchorSpread, anchorAttempts, List.copyOf(anchors), List.copyOf(enabledWorlds), cji, afkPercentage, afkItem, wanderingItems, List.copyOf(regions), fallback, persistent);
     }
 
     boolean appliesTo(World world) { return enabledWorlds.isEmpty() || enabledWorlds.contains(world.getName().toLowerCase(Locale.ROOT)); }

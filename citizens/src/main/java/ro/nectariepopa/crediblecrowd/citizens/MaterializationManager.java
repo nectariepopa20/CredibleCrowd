@@ -71,10 +71,10 @@ final class MaterializationManager implements Listener {
             }
             return false;
         });
-        if (viewers.isEmpty()) return;
+        if (viewers.isEmpty() && !settings.persistentPopulation()) return;
 
         int target = Math.min(settings.globalLimit(), (int) Math.ceil(virtual.size() * settings.percentage()));
-        target = Math.min(target, viewers.size() * settings.perPlayerLimit());
+        if (!settings.persistentPopulation()) target = Math.min(target, viewers.size() * settings.perPlayerLimit());
         int allowance = Math.min(settings.spawnBatchSize(), Math.max(0, target - active.size()));
         if (allowance == 0) return;
 
@@ -88,6 +88,9 @@ final class MaterializationManager implements Listener {
             NPC npc = registry.createNPC(EntityType.PLAYER, identity.name());
             npc.data().setPersistent("crediblecrowd.virtual-name", identity.name());
             npc.data().setPersistent("crediblecrowd.virtual-id", identity.id().toString());
+            // Keep the spawn area active while this virtual identity is materialized.
+            // Its existence is no longer tied to a nearby real player.
+            npc.data().setPersistent(NPC.Metadata.KEEP_CHUNK_LOADED, true);
             if (!npc.spawn(spawn.get())) {
                 npc.destroy();
                 continue;
@@ -116,7 +119,7 @@ final class MaterializationManager implements Listener {
         Optional<Location> anchor = settings.anchors().stream()
                 .filter(settings::allowsNpc)
                 .filter(point -> counts.getOrDefault(point.getWorld(), 0) < settings.perWorldLimit())
-                .filter(point -> viewers.stream().anyMatch(player -> player.getWorld().equals(point.getWorld())
+                .filter(point -> settings.persistentPopulation() || viewers.stream().anyMatch(player -> player.getWorld().equals(point.getWorld())
                         && player.getLocation().distanceSquared(point) <= activationSquared
                         && nearbyMaterialized(player.getLocation(), activationSquared) < settings.perPlayerLimit()))
                 .min(Comparator.comparingLong(point -> nearbyMaterialized(point, 36)))
@@ -167,6 +170,7 @@ final class MaterializationManager implements Listener {
 
     private boolean shouldDespawn(NPC npc, List<? extends Player> viewers) {
         if (!npc.isSpawned() || npc.getEntity() == null || !settings.allowsNpc(npc.getEntity().getLocation())) return true;
+        if (settings.persistentPopulation()) return false;
         Location location = npc.getEntity().getLocation();
         double distanceSquared = settings.despawnDistance() * settings.despawnDistance();
         return viewers.stream().noneMatch(player -> player.getWorld().equals(location.getWorld())

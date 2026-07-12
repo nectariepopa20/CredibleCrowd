@@ -25,6 +25,9 @@ materialization:
   # Keep false in a lobby: NPCs stay in configured anchors/regions rather
   # than appearing near a real player who walks elsewhere.
   allow-fallback-near-players: false
+  # Keep the materialized population server-side after it has spawned. It is
+  # not removed when the last real player leaves the spawn region or server.
+  persistent-population: true
 
 # NPCs are placed near real players by default. Explicit safe anchors can be
 # added as "world,x,y,z,yaw,pitch". Anchors are preferred when a real player is
