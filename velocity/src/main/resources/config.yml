@@ -17,9 +17,7 @@ servers:
 update-seconds: 60
 jitter: 0.16
 seed: 8743921
-ping-sample-size: 12
 display-mode: add-to-real # add-to-real or replace
 maximum-players: 500
 reserve-fake-names: true
 already-connected-message: "You are already connected to this proxy!"
-

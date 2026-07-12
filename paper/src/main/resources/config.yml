@@ -2,3 +2,6 @@
 intercept-list-command: true
 list-format: "There are {count} of a max of {max} players online: {players}"
 
+# Requires ProtocolLib. Entries are client-side only and use deterministic offline UUIDs.
+fake-tablist: true
+fake-tablist-latency: 45

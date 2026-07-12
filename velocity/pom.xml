@@ -1,8 +1,7 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"><modelVersion>4.0.0</modelVersion><parent><groupId>ro.nectariepopa</groupId><artifactId>crediblecrowd-parent</artifactId><version>1.0.0</version></parent><artifactId>crediblecrowd-velocity</artifactId>
+<project xmlns="http://maven.apache.org/POM/4.0.0"><modelVersion>4.0.0</modelVersion><parent><groupId>ro.nectariepopa</groupId><artifactId>crediblecrowd-parent</artifactId><version>1.1.0</version></parent><artifactId>crediblecrowd-velocity</artifactId>
 <dependencies>
  <dependency><groupId>ro.nectariepopa</groupId><artifactId>crediblecrowd-core</artifactId><version>${project.version}</version></dependency>
  <dependency><groupId>com.velocitypowered</groupId><artifactId>velocity-api</artifactId><version>3.5.1</version><scope>provided</scope></dependency>
  <dependency><groupId>org.yaml</groupId><artifactId>snakeyaml</artifactId><version>2.4</version></dependency>
 </dependencies>
 <build><plugins><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><configuration><release>21</release><annotationProcessorPaths><path><groupId>com.velocitypowered</groupId><artifactId>velocity-api</artifactId><version>3.5.1</version></path></annotationProcessorPaths></configuration></plugin><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-shade-plugin</artifactId><executions><execution><phase>package</phase><goals><goal>shade</goal></goals><configuration><artifactSet><excludes><exclude>com.velocitypowered:velocity-api</exclude></excludes></artifactSet><relocations><relocation><pattern>org.yaml.snakeyaml</pattern><shadedPattern>ro.nectariepopa.crediblecrowd.libs.snakeyaml</shadedPattern></relocation></relocations><finalName>CredibleCrowd-Velocity-${project.version}</finalName></configuration></execution></executions></plugin></plugins></build></project>
-

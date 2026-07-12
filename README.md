@@ -12,11 +12,12 @@ CredibleCrowd is a configurable virtual-population system for Velocity, with an 
 
 ## Installation
 
-1. Put `CredibleCrowd-Velocity-1.0.0.jar` in Velocity's `plugins/` directory.
+1. Put `CredibleCrowd-Velocity-1.1.0.jar` in Velocity's `plugins/` directory.
 2. Start Velocity once, then edit `plugins/crediblecrowd/config.yml` and `names.txt`.
 3. Ensure every `servers[].name` exactly matches a server name in `velocity.toml`.
-4. Optional: put `CredibleCrowd-Paper-1.0.0.jar` on every Paper backend whose `/list` output should be synchronized.
-5. Restart the proxy and backends. Use `/crediblecrowd reload` after later Velocity configuration edits.
+4. Optional: install [PlaceholderAPI 2.12.3+](https://github.com/PlaceholderAPI/PlaceholderAPI/releases) and [ProtocolLib 5.4.0+](https://github.com/dmulloy2/ProtocolLib/releases) on each Paper backend.
+5. Put `CredibleCrowd-Paper-1.1.0.jar` on every Paper backend whose placeholders, tablist and `/list` output should be synchronized.
+6. Restart the proxy and backends. Use `/crediblecrowd reload` after later Velocity configuration edits.
 
 The Paper bridge receives its assigned names over `crediblecrowd:sync`. Standard Minecraft plugin messaging needs a real player connection as a carrier, so a backend with no connected real players receives its next snapshot when a real player connects.
 
@@ -40,7 +41,6 @@ servers:
 update-seconds: 60
 jitter: 0.16
 seed: 8743921
-ping-sample-size: 12
 display-mode: add-to-real
 maximum-players: 500
 reserve-fake-names: true
@@ -59,6 +59,14 @@ Ranges are smoothly interpolated at four-hour boundaries. A slow wave and bounde
 - Paper `/ccplayers` — synchronized local population (`crediblecrowd.players`, granted by default)
 - Paper `/list` — intercepted when `intercept-list-command: true` in the bridge config
 
+## PlaceholderAPI and tablist
+
+- `%bungee_total%` returns the synchronized total across the Velocity network, including the virtual population.
+- `%bungee_server%` returns the real plus virtual population assigned to the current Paper backend.
+- If PlaceholderAPI's eCloud `Bungee` expansion is already installed, CredibleCrowd temporarily replaces that expansion while the bridge is enabled and restores it on shutdown.
+- With `fake-tablist: true`, ProtocolLib adds every locally assigned virtual name as an individual client-side tablist row. Old rows are removed on snapshot changes and the current rows are sent to newly joined players.
+- The Velocity status ping changes only its online/max count. CredibleCrowd does not supply a fake hover sample; Velocity's normal server-list behavior is preserved.
+
 ## Building
 
 ```shell
@@ -70,4 +78,3 @@ Artifacts are created in `velocity/target/` and `paper/target/`.
 ## License
 
 [MIT](LICENSE)
-
